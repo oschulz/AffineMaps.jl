@@ -1,13 +1,13 @@
-# This file is a part of AffineTransformations.jl, licensed under the MIT License (MIT).
+# This file is a part of AffineMaps.jl, licensed under the MIT License (MIT).
 
 using Test
-using AffineTransformations
+using AffineMaps
 import Documenter
 
 Documenter.DocMeta.setdocmeta!(
-    AffineTransformations,
+    AffineMaps,
     :DocTestSetup,
-    :(using AffineTransformations);
+    :(using AffineMaps);
     recursive=true,
 )
-Documenter.doctest(AffineTransformations)
+Documenter.doctest(AffineMaps)

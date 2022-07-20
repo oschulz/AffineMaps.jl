@@ -1,9 +1,9 @@
-# This file is a part of AffineTransformations.jl, licensed under the MIT License (MIT).
+# This file is a part of AffineMaps.jl, licensed under the MIT License (MIT).
 
 import Test
 import Aqua
-import AffineTransformations
+import AffineMaps
 
 Test.@testset "Aqua tests" begin
-    Aqua.test_all(AffineTransformations)
+    Aqua.test_all(AffineMaps)
 end # testset
