@@ -5,22 +5,22 @@
 # for local builds.
 
 using Documenter
-using AffineTransformations
+using AffineMaps
 
 # Doctest setup
 DocMeta.setdocmeta!(
-    AffineTransformations,
+    AffineMaps,
     :DocTestSetup,
-    :(using AffineTransformations);
+    :(using AffineMaps);
     recursive=true,
 )
 
 makedocs(
-    sitename = "AffineTransformations",
-    modules = [AffineTransformations],
+    sitename = "AffineMaps",
+    modules = [AffineMaps],
     format = Documenter.HTML(
         prettyurls = !("local" in ARGS),
-        canonical = "https://oschulz.github.io/AffineTransformations.jl/stable/"
+        canonical = "https://oschulz.github.io/AffineMaps.jl/stable/"
     ),
     pages = [
         "Home" => "index.md",
@@ -33,7 +33,7 @@ makedocs(
 )
 
 deploydocs(
-    repo = "github.com/oschulz/AffineTransformations.jl.git",
+    repo = "github.com/oschulz/AffineMaps.jl.git",
     forcepush = true,
     push_preview = true,
 )

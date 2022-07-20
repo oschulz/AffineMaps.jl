@@ -21,6 +21,6 @@ Order = [:macro, :function]
 # Documentation
 
 ```@autodocs
-Modules = [AffineTransformations]
+Modules = [AffineMaps]
 Order = [:module, :type, :constant, :macro, :function]
 ```
