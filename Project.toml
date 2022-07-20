@@ -1,0 +1,8 @@
+name = "AffineTransformations"
+uuid = "0ea4f259-a01f-4119-b52a-c3c326254fca"
+version = "0.1.0"
+
+[deps]
+
+[compat]
+julia = "1.6"
