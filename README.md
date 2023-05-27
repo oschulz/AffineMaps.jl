@@ -5,7 +5,6 @@
 [![License](http://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat)](LICENSE.md)
 [![Build Status](https://github.com/oschulz/AffineMaps.jl/workflows/CI/badge.svg?branch=main)](https://github.com/oschulz/AffineMaps.jl/actions?query=workflow%3ACI)
 [![Codecov](https://codecov.io/gh/oschulz/AffineMaps.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/oschulz/AffineMaps.jl)
-[![Aqua QA](https://raw.githubusercontent.com/JuliaTesting/Aqua.jl/master/badge.svg)](https://github.com/JuliaTesting/Aqua.jl)
 
 Affine transformations in Julia, implemented in a modular way.
 
