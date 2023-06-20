@@ -19,7 +19,7 @@ AffineStep(-, k)(x) ≈ x - k
 `AffineStep(op, k)` supports `InverseFunctions.inverse` and
 `ChangesOfVariables.with_logabsdet_jacobian`.
 """
-struct AffineStep{F<:Union{typeof(*),typeof(\),typeof(+),typeof(-)},T}
+struct AffineStep{F<:Union{typeof(*),typeof(\),typeof(+),typeof(-)},T} <: Function
     k::T
 end
 
