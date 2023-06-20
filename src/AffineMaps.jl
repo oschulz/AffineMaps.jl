@@ -7,6 +7,8 @@ Implements affine transformations in a modular way.
 """
 module AffineMaps
 
+using LinearAlgebra
+
 using InverseFunctions
 using ChangesOfVariables
 using FunctionChains
