@@ -11,9 +11,9 @@ using LinearAlgebra
 
 using InverseFunctions
 using ChangesOfVariables
-using FunctionChains
 
-include("affine_step.jl")
+import Functors
+
 include("affine_map.jl")
 
 end # module
