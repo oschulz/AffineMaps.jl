@@ -5,8 +5,8 @@
 
 Abstract type for affine maps.
 
-Affine map `f::AbstractAffineMap` act like `f(x) == A * x + b` or
-`f(x) == A * (x + b)` or their inverses, depending on the type of
+Affine map `f::AbstractAffineMap` act like `f(x) == A * x .+ b` or
+`f(x) == A * (x .+ b)` or their inverses, depending on the type of
 the map `f`.
 
 `A` may be a `Number`,  `AbstractMatrix{<:Number}` or any other
@@ -17,8 +17,8 @@ and `eltype(A)`). The packages
 and [SciMLOperators](https://github.com/SciML/SciMLOperators.jl)
 provide such operators, for example.
 
-`b` must support addition and subtraction with `x`, so it may be
-a `Number` or `AbstractVector{<:Number}`, depending on the type of `x`.
+`b` must have a shape that supports broadcasted addition and subtraction with
+`x`.
 
 Subtypes of `AbstractAffineMap` should implement/support the APIs of
 
@@ -47,7 +47,7 @@ export Mul
 """
     struct Add
 
-`f = Add(b)` has the behavior `f(x) == x + f.b`.
+`f = Add(b)` has the behavior `f(x) == x .+ f.b`.
 
 See [`AbstractAffineMap`](@ref) for more information.
 """
@@ -56,13 +56,13 @@ struct Add{V} <: AbstractAffineMap
 end
 export Add
 
-(f::Add)(x) = x + f.b
+(f::Add)(x) = _bc_add(x, f.b)
 
 
 """
     struct MulAdd
 
-`f = MulAdd(A, b)` has the behavior `f(x) == f.A * x + f.b`.
+`f = MulAdd(A, b)` has the behavior `f(x) == f.A * x .+ f.b`.
 
 See [`AbstractAffineMap`](@ref) for more information.
 """
@@ -72,13 +72,13 @@ struct MulAdd{M,V} <: AbstractAffineMap
 end
 export MulAdd
 
-(f::MulAdd)(x) = muladd(f.A, x, f.b)
+(f::MulAdd)(x) = _bc_muladd(f.A, x, f.b)
 
 
 """
     struct AddMul
 
-`f = AddMul(A, b)` has the behavior `f(x) == f.A * (x + f.b)`.
+`f = AddMul(A, b)` has the behavior `f(x) == f.A * (x .+ f.b)`.
 
 See [`AbstractAffineMap`](@ref) for more information.
 """
@@ -88,7 +88,7 @@ struct AddMul{V,M} <: AbstractAffineMap
 end
 export AddMul
 
-(f::AddMul)(x) = f.A * (x + f.b)
+(f::AddMul)(x) = f.A * _bc_add(x, f.b)
 
 
 """
@@ -110,7 +110,7 @@ export InvMul
 """
     struct Subtract
 
-`f = Subtract(b)` has the behavior `f(x) == x - f.b`. It is the inverse of
+`f = Subtract(b)` has the behavior `f(x) == x .- f.b`. It is the inverse of
 `Add(b)`.
 
 See [`AbstractAffineMap`](@ref) for more information.
@@ -120,13 +120,13 @@ struct Subtract{V} <: AbstractAffineMap
 end
 export Subtract
 
-(f::Subtract)(x) = x - f.b
+(f::Subtract)(x) = _bc_sub(x, f.b)
 
 
 """
     struct InvMulAdd
 
-`f = InvMulAdd(A, b)` has the behavior `f(x) == f.A \\ (x - f.b)`. It is the
+`f = InvMulAdd(A, b)` has the behavior `f(x) == f.A \\ (x .- f.b)`. It is the
 inverse of `MulAdd(A, b)`.
 
 See [`AbstractAffineMap`](@ref) for more information.
@@ -137,13 +137,13 @@ struct InvMulAdd{M,V} <: AbstractAffineMap
 end
 export InvMulAdd
 
-(f::InvMulAdd)(x) = f.A \ (x - f.b)
+(f::InvMulAdd)(x) = f.A \ _bc_sub(x, f.b)
 
 
 """ muladd(f.A, x, f.b)
     struct InvAddMul
 
-`f = InvAddMul(A, b)` has the behavior `f(x) == (f.A \\ x) - f.b`. It is the
+`f = InvAddMul(A, b)` has the behavior `f(x) == (f.A \\ x) .- f.b`. It is the
 inverse of `AddMul(A, b)`.
 
 See [`AbstractAffineMap`](@ref) for more information.
@@ -154,7 +154,28 @@ struct InvAddMul{V,M} <: AbstractAffineMap
 end
 export InvAddMul
 
-(f::InvAddMul)(x) = (f.A \ x) - f.b
+(f::InvAddMul)(x) = _bc_sub(f.A \ x, f.b)
+
+
+_bc_add(a::Number, b::Number) = a + b
+_bc_add(a::AbstractArray{T,N}, b::AbstractArray{U,N}) where {T,U,N} = a + b
+_bc_add(a, b) = a .+ b
+
+_bc_sub(a::Number, b::Number) = a - b
+_bc_sub(a::AbstractArray{T,N}, b::AbstractArray{U,N}) where {T,U,N} = a - b
+_bc_sub(a, b) = a .- b
+
+_bc_muladd(a, b, c) = _bc_add(a * b, c)
+_bc_muladd(a::Number, b::Number, c::Number) = muladd(a, b, c)
+_bc_muladd(a::Number, b::AbstractVector, c::AbstractVector) = muladd(a, b, c)
+_bc_muladd(a::Number, b::AbstractMatrix, c::AbstractMatrix) = muladd(a, b, c)
+_bc_muladd(a::AbstractMatrix, b::AbstractMatrix, c::AbstractMatrix) = muladd(a, b, c)
+_bc_muladd(a::AbstractMatrix, b::Number, c::AbstractMatrix) = muladd(a, b, c)
+_bc_muladd(a::AbstractMatrix, b::AbstractVector, c::Number) = muladd(a, b, c)
+_bc_muladd(a::AbstractMatrix, b::AbstractVector, c::AbstractVector) = muladd(a, b, c)
+_bc_muladd(a::AbstractMatrix, b::AbstractMatrix, c::Number) = muladd(a, b, c)
+_bc_muladd(a::AbstractMatrix, b::AbstractMatrix, c::AbstractVector) = muladd(a, b, c)
+_bc_muladd(a::AbstractMatrix, b::AbstractMatrix, c::AbstractMatrix) = muladd(a, b, c)
 
 
 InverseFunctions.inverse(f::Mul) = InvMul(f.A)
