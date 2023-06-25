@@ -12,64 +12,89 @@ include("getjacobian.jl")
 @testset "AffineMap" begin
     n = 5
 
-    A_scalar = 3.3
-    A_scalar_c = Complex(3.3, 1.2)
-    A_mat = randn(n, n)
-    A_mat_c = Complex.(randn(n, n), randn(n, n))
+    @testset "equality" begin
+        A = randn(n, n); A2 = copy(A)
+        b = randn(n); b2 = copy(b)
 
-    b_scalar = 0.7
-    b_scalar_c = 0.7
-    b_vec = rand(n)
-    b_vec_c = Complex.(rand(n), rand(n))
-    b_mat = randn(n, n)
-    b_mat_c = Complex.(randn(n, n), randn(n, n))
+        @test @inferred(Mul(A) == Mul(A2))
+        @test @inferred(InvMul(A) == InvMul(A2))
+        @test @inferred(Add(A) == Add(A2))
+        @test @inferred(Subtract(A) == Subtract(A2))
+        @test @inferred(MulAdd(A, b) == MulAdd(A2, b2))
+        @test @inferred(InvMulAdd(A, b) == InvMulAdd(A2, b2))
+        @test @inferred(AddMul(b, A) == AddMul(b2, A2))
+        @test @inferred(InvAddMul(b, A) == InvAddMul(b2, A2))
 
-    x_scalar = 0.7
-    x_scalar_c = Complex(0.7, 0.3)
-    x_vec = rand(n)
-    x_vec_c = Complex.(rand(n), rand(n))
-    x_mat = randn(n, n)
-    x_mat_c = Complex.(randn(n, n), randn(n, n))
+        @test @inferred(isapprox(Mul(A), Mul(A2); atol = 1e-5))
+        @test @inferred(isapprox(InvMul(A), InvMul(A2); atol = 1e-5))
+        @test @inferred(isapprox(Add(A), Add(A2); atol = 1e-5))
+        @test @inferred(isapprox(Subtract(A), Subtract(A2); atol = 1e-5))
+        @test @inferred(isapprox(MulAdd(A, b), MulAdd(A2, b2); atol = 1e-5))
+        @test @inferred(isapprox(InvMulAdd(A, b), InvMulAdd(A2, b2); atol = 1e-5))
+        @test @inferred(isapprox(AddMul(b, A), AddMul(b2, A2); atol = 1e-5))
+        @test @inferred(isapprox(InvAddMul(b, A), InvAddMul(b2, A2); atol = 1e-5))
+    end
 
-    for A in [
-        A_scalar,
-        A_mat,
-        A_scalar_c,
-        A_mat_c
-    ],
-    b in [
-        b_scalar,
-        b_vec,
-        b_mat,
-        b_scalar_c,
-        b_vec_c,
-        b_mat_c
-    ],
-    x in [
-        x_scalar,
-        x_vec,
-        x_mat,
-        x_scalar_c,
-        x_vec_c,
-        x_mat_c
-    ]
-        for (f, inv_f, y) in [
-            (Mul(A), InvMul(A), A * x),
-            (Add(b), Subtract(b), x .+ b),
-            (MulAdd(A, b), InvMulAdd(A, b), A * x .+ b),
-            (AddMul(b, A), InvAddMul(b, A), A * (x .+ b)),
+    @testset "functionality" begin
+        A_scalar = 3.3
+        A_scalar_c = Complex(3.3, 1.2)
+        A_mat = randn(n, n)
+        A_mat_c = Complex.(randn(n, n), randn(n, n))
+
+        b_scalar = 0.7
+        b_scalar_c = 0.7
+        b_vec = rand(n)
+        b_vec_c = Complex.(rand(n), rand(n))
+        b_mat = randn(n, n)
+        b_mat_c = Complex.(randn(n, n), randn(n, n))
+
+        x_scalar = 0.7
+        x_scalar_c = Complex(0.7, 0.3)
+        x_vec = rand(n)
+        x_vec_c = Complex.(rand(n), rand(n))
+        x_mat = randn(n, n)
+        x_mat_c = Complex.(randn(n, n), randn(n, n))
+
+        for A in [
+            A_scalar,
+            A_mat,
+            A_scalar_c,
+            A_mat_c
+        ],
+        b in [
+            b_scalar,
+            b_vec,
+            b_mat,
+            b_scalar_c,
+            b_vec_c,
+            b_mat_c
+        ],
+        x in [
+            x_scalar,
+            x_vec,
+            x_mat,
+            x_scalar_c,
+            x_vec_c,
+            x_mat_c
         ]
-            if !(A isa AbstractVector && x isa AbstractMatrix)
-                @test f isa Function
-                @test @inferred(f(x)) ≈ y
+            for (f, inv_f, y) in [
+                (Mul(A), InvMul(A), A * x),
+                (Add(b), Subtract(b), x .+ b),
+                (MulAdd(A, b), InvMulAdd(A, b), A * x .+ b),
+                (AddMul(b, A), InvAddMul(b, A), A * (x .+ b)),
+            ]
+                if !(A isa AbstractVector && x isa AbstractMatrix)
+                    @test f isa Function
+                    @test @inferred(f(x)) ≈ y
 
-                if size(y) == size(x)
-                    InverseFunctions.test_inverse(f, x)
-                    @test @inferred(inv_f(y)) ≈ x
-                    InverseFunctions.test_inverse(inv_f, y)
-                    if eltype(A) <: Real && eltype(b) <: Real || eltype(x) <: Complex
-                        ChangesOfVariables.test_with_logabsdet_jacobian(f, x, getjacobian)
-                        ChangesOfVariables.test_with_logabsdet_jacobian(inv_f, y, getjacobian)
+                    if size(y) == size(x)
+                        InverseFunctions.test_inverse(f, x)
+                        @test @inferred(inv_f(y)) ≈ x
+                        InverseFunctions.test_inverse(inv_f, y)
+                        if eltype(A) <: Real && eltype(b) <: Real || eltype(x) <: Complex
+                            ChangesOfVariables.test_with_logabsdet_jacobian(f, x, getjacobian)
+                            ChangesOfVariables.test_with_logabsdet_jacobian(inv_f, y, getjacobian)
+                        end
                     end
                 end
             end

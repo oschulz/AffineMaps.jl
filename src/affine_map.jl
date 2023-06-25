@@ -43,6 +43,8 @@ export Mul
 
 (f::Mul)(x) = f.A * x
 
+Base.:(==)(f::Mul, g::Mul) = f.A == g.A
+Base.isapprox(f::Mul, g::Mul; kwargs...) = isapprox(f.A, g.A; kwargs...)
 
 """
     struct Add
@@ -57,6 +59,9 @@ end
 export Add
 
 (f::Add)(x) = _bc_add(x, f.b)
+
+Base.:(==)(f::Add, g::Add) = f.b == g.b
+Base.isapprox(f::Add, g::Add; kwargs...) = isapprox(f.b, g.b; kwargs...)
 
 
 """
@@ -74,6 +79,9 @@ export MulAdd
 
 (f::MulAdd)(x) = _bc_muladd(f.A, x, f.b)
 
+Base.:(==)(f::MulAdd, g::MulAdd) = f.A == g.A && f.b == g.b
+Base.isapprox(f::MulAdd, g::MulAdd; kwargs...) = isapprox(f.A, g.A; kwargs...) && isapprox(f.b, g.b; kwargs...)
+
 
 """
     struct AddMul
@@ -89,6 +97,9 @@ end
 export AddMul
 
 (f::AddMul)(x) = f.A * _bc_add(x, f.b)
+
+Base.:(==)(f::AddMul, g::AddMul) = f.A == g.A && f.b == g.b
+Base.isapprox(f::AddMul, g::AddMul; kwargs...) = isapprox(f.A, g.A; kwargs...) && isapprox(f.b, g.b; kwargs...)
 
 
 """
@@ -106,6 +117,9 @@ export InvMul
 
 (f::InvMul)(x) = f.A \ x
 
+Base.:(==)(f::InvMul, g::InvMul) = f.A == g.A
+Base.isapprox(f::InvMul, g::InvMul; kwargs...) = isapprox(f.A, g.A; kwargs...)
+
 
 """
     struct Subtract
@@ -121,6 +135,9 @@ end
 export Subtract
 
 (f::Subtract)(x) = _bc_sub(x, f.b)
+
+Base.:(==)(f::Subtract, g::Subtract) = f.b == g.b
+Base.isapprox(f::Subtract, g::Subtract; kwargs...) = isapprox(f.b, g.b; kwargs...)
 
 
 """
@@ -139,6 +156,9 @@ export InvMulAdd
 
 (f::InvMulAdd)(x) = f.A \ _bc_sub(x, f.b)
 
+Base.:(==)(f::InvMulAdd, g::InvMulAdd) = f.A == g.A && f.b == g.b
+Base.isapprox(f::InvMulAdd, g::InvMulAdd; kwargs...) = isapprox(f.A, g.A; kwargs...) && isapprox(f.b, g.b; kwargs...)
+
 
 """ muladd(f.A, x, f.b)
     struct InvAddMul
@@ -155,6 +175,9 @@ end
 export InvAddMul
 
 (f::InvAddMul)(x) = _bc_sub(f.A \ x, f.b)
+
+Base.:(==)(f::InvAddMul, g::InvAddMul) = f.A == g.A && f.b == g.b
+Base.isapprox(f::InvAddMul, g::InvAddMul; kwargs...) = isapprox(f.A, g.A; kwargs...) && isapprox(f.b, g.b; kwargs...)
 
 
 _bc_add(a::Number, b::Number) = a + b
