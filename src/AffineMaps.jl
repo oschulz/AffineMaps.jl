@@ -9,11 +9,14 @@ module AffineMaps
 
 using LinearAlgebra
 
-using InverseFunctions
-using ChangesOfVariables
-
-import Functors
-
 include("affine_map.jl")
+
+@static if !isdefined(Base, :get_extension)
+    include("../ext/AffineMapsAdaptExt.jl")
+    include("../ext/AffineMapsChangesOfVariablesExt.jl")
+    # FlexiMaps supports Julia >= v1.9 only
+    include("../ext/AffineMapsFunctorsExt.jl")
+    include("../ext/AffineMapsInverseFunctionsExt.jl")
+end
 
 end # module

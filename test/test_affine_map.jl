@@ -5,7 +5,14 @@ using Test
 
 using LinearAlgebra
 using InverseFunctions, ChangesOfVariables
+import Adapt, Functors
 import ForwardDiff
+
+import Pkg
+if ("FlexiMaps" in keys(Pkg.project().dependencies))
+    # FlexiMaps supports Julia >= v1.9 only.
+    import FlexiMaps
+end
 
 include("getjacobian.jl")
 
@@ -33,7 +40,7 @@ include("getjacobian.jl")
         @test @inferred(isapprox(InvMulAdd(A, b), InvMulAdd(A2, b2); atol = 1e-5))
         @test @inferred(isapprox(AddMul(b, A), AddMul(b2, A2); atol = 1e-5))
         @test @inferred(isapprox(InvAddMul(b, A), InvAddMul(b2, A2); atol = 1e-5))
-    end
+    end    
 
     @testset "functionality" begin
         A_scalar = 3.3
@@ -54,6 +61,8 @@ include("getjacobian.jl")
         x_vec_c = Complex.(rand(n), rand(n))
         x_mat = randn(n, n)
         x_mat_c = Complex.(randn(n, n), randn(n, n))
+
+        @test_throws ArgumentError with_logabsdet_jacobian(Mul(A_mat_c), x_vec)
 
         for A in [
             A_scalar,
@@ -101,7 +110,37 @@ include("getjacobian.jl")
         end
     end
 
-    @test_throws ArgumentError with_logabsdet_jacobian(Mul(A_mat_c), x_vec)
+    @testset "Extensions" begin
+        A = randn(n, n)
+        b = randn(n)
+        x = randn(n)
+        x2 = randn(n)
+
+        for f in [
+                Mul(A),
+                InvMul(A),
+                Add(b),
+                Subtract(b),
+                MulAdd(A, b),
+                InvMulAdd(A, b),
+                AddMul(b, A),
+                InvAddMul(b, A)
+        ]
+
+            @test @inferred(Adapt.adapt(Array{Float32}, f)) isa AffineMaps.AbstractAffineMap
+            @test Adapt.adapt(Array{Float32}, f) ≈ f
+            @test @inferred(Adapt.adapt(Array{Float32}, f)(Float32.(x))) isa Vector{Float32}
+
+            @test Functors.fmap(Array{Float32}, f) isa AffineMaps.AbstractAffineMap
+            @test Functors.fmap(Array{Float32}, f) ≈ f
+            @test @inferred(Functors.fmap(Array{Float32}, f)(Float32.(x))) isa Vector{Float32}
+
+            @static if isdefined(Main, :FlexiMaps)
+                @test @inferred(FlexiMaps.isaffine(f)) == true
+                @test @inferred(FlexiMaps.islinear(f)) == (f(x + x2) ≈ f(x) + f(x2))
+            end
+        end
+    end
 end
 
 nothing
