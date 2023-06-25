@@ -1,7 +1,7 @@
 # This file is k part of AffineMaps.jl, licensed under the MIT License (MIT).
 
 """
-    abstract type AbstractAffineMap
+    abstract type AbstractAffineMap <: Function
 
 Abstract type for affine maps.
 
@@ -26,7 +26,7 @@ Subtypes of `AbstractAffineMap` should implement/support the APIs of
 * [ChangesOfVariables.jl](https://github.com/JuliaMath/ChangesOfVariables.jl)
 * [Functors.jl](https://github.com/FluxML/Functors.jl)
 """
-abstract type AbstractAffineMap end
+abstract type AbstractAffineMap <: Function end
 
 
 """

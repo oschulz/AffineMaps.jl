@@ -60,6 +60,7 @@ include("getjacobian.jl")
             (AddMul(b, A), InvAddMul(b, A), A * (x .+ b)),
         ]
             if !(A isa AbstractVector && x isa AbstractMatrix)
+                @test f isa Function
                 @test @inferred(f(x)) ≈ y
 
                 if size(y) == size(x)
