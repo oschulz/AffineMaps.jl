@@ -1,6 +1,6 @@
 name = "AffineMaps"
 uuid = "2c83c9a8-abf5-4329-a0d7-deffaf474661"
-version = "0.2.1"
+version = "0.2.2"
 
 [deps]
 ChangesOfVariables = "9e997f8a-9a97-42d5-a9f1-ce6bfc15e2c0"
