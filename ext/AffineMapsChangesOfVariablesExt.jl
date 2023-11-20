@@ -7,16 +7,16 @@ using AffineMaps
 using LinearAlgebra
 
 ChangesOfVariables.with_logabsdet_jacobian(f::Mul, x) = f(x), _mul_ladj(f.A, x)
-ChangesOfVariables.with_logabsdet_jacobian(f::InvMul, x) = f(x), .- _mul_ladj(f.A, x)
+ChangesOfVariables.with_logabsdet_jacobian(f::InvMul, x) = f(x), - _mul_ladj(f.A, x)
 
 ChangesOfVariables.with_logabsdet_jacobian(f::Add, x) = f(x), _add_ladj(x)
 ChangesOfVariables.with_logabsdet_jacobian(f::Subtract, x) = f(x), _add_ladj(x)
 
 ChangesOfVariables.with_logabsdet_jacobian(f::MulAdd, x) = f(x),  _mul_ladj(f.A, x)
-ChangesOfVariables.with_logabsdet_jacobian(f::InvMulAdd, x) = f(x), .- _mul_ladj(f.A, x)
+ChangesOfVariables.with_logabsdet_jacobian(f::InvMulAdd, x) = f(x), - _mul_ladj(f.A, x)
 
 ChangesOfVariables.with_logabsdet_jacobian(f::AddMul, x) = f(x),  _mul_ladj(f.A, x)
-ChangesOfVariables.with_logabsdet_jacobian(f::InvAddMul, x) = f(x), .- _mul_ladj(f.A, x)
+ChangesOfVariables.with_logabsdet_jacobian(f::InvAddMul, x) = f(x), - _mul_ladj(f.A, x)
 
 
 # Julia v1.8 supports logabsdet(::Number), but older versions don't:
