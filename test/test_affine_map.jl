@@ -101,8 +101,11 @@ include("getjacobian.jl")
                         @test @inferred(inv_f(y)) ≈ x
                         InverseFunctions.test_inverse(inv_f, y)
                         if eltype(A) <: Real && eltype(b) <: Real || eltype(x) <: Complex
-                            ChangesOfVariables.test_with_logabsdet_jacobian(f, x, getjacobian)
-                            ChangesOfVariables.test_with_logabsdet_jacobian(inv_f, y, getjacobian)
+                            #ChangesOfVariables.test_with_logabsdet_jacobian(f, x, getjacobian)
+                            #ChangesOfVariables.test_with_logabsdet_jacobian(inv_f, y, getjacobian)
+                            @test isapprox(ChangesOfVariables.with_logabsdet_jacobian(f, x)[1], y) && all(isapprox.(ChangesOfVariables.with_logabsdet_jacobian(f, x)[2], logabsdet(getjacobian(f, x))[1]))
+                            @test isapprox(ChangesOfVariables.with_logabsdet_jacobian(inv_f, y)[1], x) && all(isapprox.(ChangesOfVariables.with_logabsdet_jacobian(inv_f, y)[2], logabsdet(getjacobian(inv_f, y))[1]))
+                            
                         end
                     end
                 end
