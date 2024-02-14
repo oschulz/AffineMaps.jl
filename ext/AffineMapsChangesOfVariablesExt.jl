@@ -27,7 +27,7 @@ _type_ndof(::Type{<:Real}) = 1
 _type_ndof(::Type{<:Complex}) = 2
 
 _mul_ladj_impl(k, x) = _logabsdet(k) * length(eachindex(x)) / length(axes(k,1)) * _type_ndof(eltype(x))
-_mul_ladj_impl(k, x::Matrix) = fill(_logabsdet(k) * length(eachindex(x)) / length(axes(k,1)) * _type_ndof(eltype(x)), 1, size(x, 2))
+_mul_ladj_impl(k, x::Matrix) = fill(_logabsdet(k) * _type_ndof(eltype(x)), 1, size(x, 2))
 
 _realtype(::Type{T}) where {T<:Real} = T
 _realtype(::Type{Complex{T}}) where {T<:Real} = T
