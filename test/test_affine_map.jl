@@ -15,10 +15,9 @@ if ("FlexiMaps" in keys(Pkg.project().dependencies))
 end
 
 include("getjacobian.jl")
-
+const _RCNumber = Union{Real,Complex}
 @testset "AffineMap" begin
     n = 5
-
     @testset "equality" begin
         A = randn(n, n); A2 = copy(A)
         b = randn(n); b2 = copy(b)
@@ -100,12 +99,13 @@ include("getjacobian.jl")
                         InverseFunctions.test_inverse(f, x)
                         @test @inferred(inv_f(y)) ≈ x
                         InverseFunctions.test_inverse(inv_f, y)
-                        if eltype(A) <: Real && eltype(b) <: Real || eltype(x) <: Complex
-                            #ChangesOfVariables.test_with_logabsdet_jacobian(f, x, getjacobian)
-                            #ChangesOfVariables.test_with_logabsdet_jacobian(inv_f, y, getjacobian)
-                            @test isapprox(ChangesOfVariables.with_logabsdet_jacobian(f, x)[1], y) && all(isapprox.(ChangesOfVariables.with_logabsdet_jacobian(f, x)[2], logabsdet(getjacobian(f, x))[1]))
-                            @test isapprox(ChangesOfVariables.with_logabsdet_jacobian(inv_f, y)[1], x) && all(isapprox.(ChangesOfVariables.with_logabsdet_jacobian(inv_f, y)[2], logabsdet(getjacobian(inv_f, y))[1]))
-                            
+                        if (eltype(A) <: Real && eltype(b) <: Real || eltype(x) <: Complex) && !(x isa Matrix)  
+                            ChangesOfVariables.test_with_logabsdet_jacobian(f, x, getjacobian)
+                            ChangesOfVariables.test_with_logabsdet_jacobian(inv_f, y, getjacobian)
+                        elseif (eltype(A) <: Real && eltype(b) <: Real || eltype(x) <: Complex) && (x isa AbstractMatrix)  
+                            m = A isa _RCNumber ? length(x) : n
+                            @test isapprox(ChangesOfVariables.with_logabsdet_jacobian(f, x)[1], y) && isapprox(ChangesOfVariables.with_logabsdet_jacobian(f, x)[2][1] * m, logabsdet(getjacobian(f, x))[1])
+                            @test isapprox(ChangesOfVariables.with_logabsdet_jacobian(inv_f, y)[1], x) && isapprox(ChangesOfVariables.with_logabsdet_jacobian(inv_f, y)[2][1] * m, logabsdet(getjacobian(inv_f, y))[1])
                         end
                     end
                 end
