@@ -7,6 +7,7 @@ using LinearAlgebra
 using InverseFunctions, ChangesOfVariables
 import Adapt, Functors
 import ForwardDiff
+import Functors
 
 import Pkg
 if ("FlexiMaps" in keys(Pkg.project().dependencies))
@@ -91,6 +92,7 @@ const _RCNumber = Union{Real,Complex}
                 (MulAdd(A, b), InvMulAdd(A, b), A * x .+ b),
                 (AddMul(b, A), InvAddMul(b, A), A * (x .+ b)),
             ]
+                @info "Testing $(typeof(f))" 
                 if !(A isa AbstractVector && x isa AbstractMatrix)
                     @test f isa Function
                     @test @inferred(f(x)) ≈ y
@@ -129,11 +131,12 @@ const _RCNumber = Union{Real,Complex}
                 AddMul(b, A),
                 InvAddMul(b, A)
         ]
-
             @test @inferred(Adapt.adapt(Array{Float32}, f)) isa AffineMaps.AbstractAffineMap
             @test Adapt.adapt(Array{Float32}, f) ≈ f
             @test @inferred(Adapt.adapt(Array{Float32}, f)(Float32.(x))) isa Vector{Float32}
 
+            params, f_ctor = @inferred Functors.functor(f)
+            @test @inferred(f_ctor(params)) == f
             @test Functors.fmap(Array{Float32}, f) isa AffineMaps.AbstractAffineMap
             @test Functors.fmap(Array{Float32}, f) ≈ f
             @test @inferred(Functors.fmap(Array{Float32}, f)(Float32.(x))) isa Vector{Float32}
