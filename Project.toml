@@ -1,6 +1,6 @@
 name = "AffineMaps"
 uuid = "2c83c9a8-abf5-4329-a0d7-deffaf474661"
-version = "0.3.2"
+version = "0.3.3"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
