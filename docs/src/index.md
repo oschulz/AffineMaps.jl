@@ -1,8 +1,8 @@
 # AffineMaps.jl
 
-AffineMaps.jl implements Affine maps. It provides the function object types [`Mul`](@ref), [`Add`](@ref), [`MulAdd`](@ref) and [`AddMul`](@ref), as well as their inverses.
+AffineMaps.jl implements affine maps. It provides the function object types [`Mul`](@ref), [`Add`](@ref), [`MulAdd`](@ref) and [`AddMul`](@ref), as well as their inverses.
 
-All function objects defined here support the implement/support the APIs of
+All function objects defined here implement the APIs of
 
 * [InverseFunctions.jl](https://github.com/JuliaMath/InverseFunctions.jl)
 * [ChangesOfVariables.jl](https://github.com/JuliaMath/ChangesOfVariables.jl)

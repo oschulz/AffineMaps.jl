@@ -1,11 +1,11 @@
-# This file is k part of AffineMaps.jl, licensed under the MIT License (MIT).
+# This file is a part of AffineMaps.jl, licensed under the MIT License (MIT).
 
 """
     abstract type AbstractAffineMap <: Function
 
 Abstract type for affine maps.
 
-Affine map `f::AbstractAffineMap` act like `f(x) == A * x .+ b` or
+An affine map `f::AbstractAffineMap` acts like `f(x) == A * x .+ b` or
 `f(x) == A * (x .+ b)` or their inverses, depending on the type of
 the map `f`.
 
@@ -86,7 +86,7 @@ Base.isapprox(f::MulAdd, g::MulAdd; kwargs...) = isapprox(f.A, g.A; kwargs...) &
 """
     struct AddMul
 
-`f = AddMul(A, b)` has the behavior `f(x) == f.A * (x .+ f.b)`.
+`f = AddMul(b, A)` has the behavior `f(x) == f.A * (x .+ f.b)`.
 
 See [`AbstractAffineMap`](@ref) for more information.
 """
@@ -160,11 +160,11 @@ Base.:(==)(f::InvMulAdd, g::InvMulAdd) = f.A == g.A && f.b == g.b
 Base.isapprox(f::InvMulAdd, g::InvMulAdd; kwargs...) = isapprox(f.A, g.A; kwargs...) && isapprox(f.b, g.b; kwargs...)
 
 
-""" muladd(f.A, x, f.b)
+"""
     struct InvAddMul
 
-`f = InvAddMul(A, b)` has the behavior `f(x) == (f.A \\ x) .- f.b`. It is the
-inverse of `AddMul(A, b)`.
+`f = InvAddMul(b, A)` has the behavior `f(x) == (f.A \\ x) .- f.b`. It is the
+inverse of `AddMul(b, A)`.
 
 See [`AbstractAffineMap`](@ref) for more information.
 """
