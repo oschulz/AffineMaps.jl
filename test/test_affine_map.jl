@@ -104,27 +104,32 @@ const _RCNumber = Union{Real,Complex}
             x_vec_c,
             x_mat_c
         ]
-            for (f, inv_f, y) in [
-                (Mul(A), InvMul(A), A * x),
-                (Add(b), Subtract(b), x .+ b),
-                (MulAdd(A, b), InvMulAdd(A, b), A * x .+ b),
-                (AddMul(b, A), InvAddMul(b, A), A * (x .+ b)),
+            Ax = A * x
+            for (f, inv_f, y, valid) in [
+                (Mul(A), InvMul(A), Ax, true),
+                (Add(b), Subtract(b), x .+ b, axes(x .+ b) == axes(x)),
+                (MulAdd(A, b), InvMulAdd(A, b), Ax .+ b, axes(Ax .+ b) == axes(Ax)),
+                (AddMul(b, A), InvAddMul(b, A), A * (x .+ b), axes(x .+ b) == axes(x)),
             ]
                 @testset "$(typeof(f)) with x::$(typeof(x))" begin
                     @test f isa Function
-                    @test @inferred(f(x)) ≈ y
+                    if !valid
+                        @test_throws DimensionMismatch f(x)
+                    else
+                        @test @inferred(f(x)) ≈ y
 
-                    if size(y) == size(x)
-                        InverseFunctions.test_inverse(f, x)
-                        @test @inferred(inv_f(y)) ≈ x
-                        InverseFunctions.test_inverse(inv_f, y)
-                        if (eltype(A) <: Real && eltype(b) <: Real || eltype(x) <: Complex) && !(x isa Matrix)
-                            ChangesOfVariables.test_with_logabsdet_jacobian(f, x, getjacobian)
-                            ChangesOfVariables.test_with_logabsdet_jacobian(inv_f, y, getjacobian)
-                        elseif (eltype(A) <: Real && eltype(b) <: Real || eltype(x) <: Complex) && (x isa AbstractMatrix)
-                            m = A isa _RCNumber ? length(x) : n
-                            @test isapprox(ChangesOfVariables.with_logabsdet_jacobian(f, x)[1], y) && isapprox(ChangesOfVariables.with_logabsdet_jacobian(f, x)[2][1] * m, logabsdet(getjacobian(f, x))[1])
-                            @test isapprox(ChangesOfVariables.with_logabsdet_jacobian(inv_f, y)[1], x) && isapprox(ChangesOfVariables.with_logabsdet_jacobian(inv_f, y)[2][1] * m, logabsdet(getjacobian(inv_f, y))[1])
+                        if size(y) == size(x)
+                            InverseFunctions.test_inverse(f, x)
+                            @test @inferred(inv_f(y)) ≈ x
+                            InverseFunctions.test_inverse(inv_f, y)
+                            if (eltype(A) <: Real && eltype(b) <: Real || eltype(x) <: Complex) && !(x isa Matrix)
+                                ChangesOfVariables.test_with_logabsdet_jacobian(f, x, getjacobian)
+                                ChangesOfVariables.test_with_logabsdet_jacobian(inv_f, y, getjacobian)
+                            elseif (eltype(A) <: Real && eltype(b) <: Real || eltype(x) <: Complex) && (x isa AbstractMatrix)
+                                m = A isa _RCNumber ? length(x) : n
+                                @test isapprox(ChangesOfVariables.with_logabsdet_jacobian(f, x)[1], y) && isapprox(ChangesOfVariables.with_logabsdet_jacobian(f, x)[2][1] * m, logabsdet(getjacobian(f, x))[1])
+                                @test isapprox(ChangesOfVariables.with_logabsdet_jacobian(inv_f, y)[1], x) && isapprox(ChangesOfVariables.with_logabsdet_jacobian(inv_f, y)[2][1] * m, logabsdet(getjacobian(inv_f, y))[1])
+                            end
                         end
                     end
                 end

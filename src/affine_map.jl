@@ -17,8 +17,9 @@ and `eltype(A)`). The packages
 and [SciMLOperators](https://github.com/SciML/SciMLOperators.jl)
 provide such operators, for example.
 
-`b` must have a shape that supports broadcasted addition and subtraction with
-`x`.
+`b` must broadcast over `A * x` (resp. `x`) without changing its shape: a
+scalar, an array of equal shape, or e.g. a vector to add column-wise to a
+matrix-valued `A * x`.
 
 Subtypes of `AbstractAffineMap` should implement/support the APIs of
 
@@ -180,21 +181,16 @@ Base.:(==)(f::InvAddMul, g::InvAddMul) = f.A == g.A && f.b == g.b
 Base.isapprox(f::InvAddMul, g::InvAddMul; kwargs...) = isapprox(f.A, g.A; kwargs...) && isapprox(f.b, g.b; kwargs...)
 
 
-_bc_add(a::Number, b::Number) = a + b
-_bc_add(a::AbstractArray{T,N}, b::AbstractArray{U,N}) where {T,U,N} = a + b
-_bc_add(a, b) = a .+ b
+_check_bc_shape(x, b) = Base.Broadcast.combine_axes(x, b) == axes(x) ||
+    throw(DimensionMismatch("offset would change the shape of the affine map argument"))
 
-_bc_sub(a::Number, b::Number) = a - b
-_bc_sub(a::AbstractArray{T,N}, b::AbstractArray{U,N}) where {T,U,N} = a - b
-_bc_sub(a, b) = a .- b
+_bc_add(x::Number, b::Number) = x + b
+_bc_add(x, b) = (_check_bc_shape(x, b); x .+ b)
 
-_bc_muladd(a, b, c) = _bc_add(a * b, c)
-_bc_muladd(a::Number, b::Number, c::Number) = muladd(a, b, c)
-_bc_muladd(a::Number, b::AbstractVector, c::AbstractVector) = muladd(a, b, c)
-_bc_muladd(a::Number, b::AbstractMatrix, c::AbstractMatrix) = muladd(a, b, c)
-_bc_muladd(a::AbstractMatrix, b::Number, c::AbstractMatrix) = muladd(a, b, c)
-_bc_muladd(a::AbstractMatrix, b::AbstractVector, c::Number) = muladd(a, b, c)
-_bc_muladd(a::AbstractMatrix, b::AbstractVector, c::AbstractVector) = muladd(a, b, c)
-_bc_muladd(a::AbstractMatrix, b::AbstractMatrix, c::Number) = muladd(a, b, c)
-_bc_muladd(a::AbstractMatrix, b::AbstractMatrix, c::AbstractVector) = muladd(a, b, c)
-_bc_muladd(a::AbstractMatrix, b::AbstractMatrix, c::AbstractMatrix) = muladd(a, b, c)
+_bc_sub(x::Number, b::Number) = x - b
+_bc_sub(x, b) = (_check_bc_shape(x, b); x .- b)
+
+_bc_muladd(A, x, b) = _bc_add(A * x, b)
+_bc_muladd(A::Number, x::Number, b::Number) = muladd(A, x, b)
+_bc_muladd(A::AbstractMatrix, x::AbstractVector, b::Union{Number,AbstractVector}) = muladd(A, x, b)
+_bc_muladd(A::AbstractMatrix, x::AbstractMatrix, b::Union{Number,AbstractVecOrMat}) = muladd(A, x, b)
