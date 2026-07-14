@@ -142,6 +142,30 @@ include("getjacobian.jl")
         end
     end
 
+    @testset "UniformScaling operator" begin
+        b = rand(n)
+        x = rand(n)
+        X = rand(n, n)
+
+        for λ in (3.3, 3.3 + 1.2im)
+            xl = λ isa Complex ? complex.(x) : x
+            for (f, y) in [
+                (Mul(λ * I), λ * xl),
+                (MulAdd(λ * I, b), λ * xl .+ b),
+                (AddMul(b, λ * I), λ * (xl .+ b)),
+            ]
+                @test @inferred(f(xl)) ≈ y
+                InverseFunctions.test_inverse(f, xl)
+                ChangesOfVariables.test_with_logabsdet_jacobian(f, xl, getjacobian)
+                ChangesOfVariables.test_with_logabsdet_jacobian(inverse(f), y, getjacobian)
+            end
+        end
+
+        y, ladj = ChangesOfVariables.with_logabsdet_jacobian(Mul(3.3 * I), X)
+        @test y ≈ 3.3 * X
+        @test ladj ≈ fill(n * log(3.3), 1, n)
+    end
+
     @testset "Extensions" begin
         A = randn(n, n)
         b = randn(n)

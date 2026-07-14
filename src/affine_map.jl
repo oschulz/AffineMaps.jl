@@ -9,13 +9,15 @@ An affine map `f::AbstractAffineMap` acts like `f(x) == A * x .+ b` or
 `f(x) == A * (x .+ b)` or their inverses, depending on the type of
 the map `f`.
 
-`A` may be a `Number`,  `AbstractMatrix{<:Number}` or any other
-multiplicative linear operator in general (that supports at least `size(A)`
-and `eltype(A)`). The packages
+`A` may be a `Number`, an `AbstractMatrix{<:Number}`, a
+`LinearAlgebra.UniformScaling` or any other multiplicative linear operator
+that supports `A * x`. The packages
 [LinearMaps](https://github.com/JuliaLinearAlgebra/LinearMaps.jl),
 [LinearOperators](https://github.com/JuliaSmoothOptimizers/LinearOperators.jl)
 and [SciMLOperators](https://github.com/SciML/SciMLOperators.jl)
-provide such operators, for example.
+provide such operators, for example. Inverse maps require support for
+`A \\ y`, and `logabsdet(Jacobian)` computations are supported for `Number`,
+`AbstractMatrix` and `UniformScaling` operators.
 
 `b` must broadcast over `A * x` (resp. `x`) without changing its shape: a
 scalar, an array of equal shape, or e.g. a vector to add column-wise to a

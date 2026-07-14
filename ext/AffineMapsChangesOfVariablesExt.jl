@@ -36,6 +36,7 @@ _add_ladj(x) = zero(_realtype(eltype(x)))
 _add_ladj(x::AbstractMatrix) = zeros(_realtype(eltype(x)), 1, size(x, 2))
 
 _mul_ladj(@nospecialize(A), @nospecialize(x)) = throw(ArgumentError("Can't determine logabsdet(Jacobian) for multiplication of a $(typeof(A)) and a $(typeof(x))"))
+_mul_ladj(A::UniformScaling, x) = _mul_ladj(A.λ, x)
 _mul_ladj(A::Real, x::Union{_RCNumber,AbstractArray{<:_RCNumber}}) = _mul_ladj_impl(A, x)
 _mul_ladj(A::Complex, x::Union{Complex,AbstractArray{<:Complex}}) = _mul_ladj_impl(A, x)
 _mul_ladj(A::AbstractMatrix{<:Real}, x::Union{AbstractVector{<:_RCNumber},AbstractMatrix{<:_RCNumber}}) = _mul_ladj_impl(A, x)
