@@ -34,6 +34,30 @@ const _RCNumber = Union{Real,Complex}
         @test @inferred(isapprox(InvMulAdd(A, b), InvMulAdd(A2, b2); atol = 1e-5))
         @test @inferred(isapprox(AddMul(b, A), AddMul(b2, A2); atol = 1e-5))
         @test @inferred(isapprox(InvAddMul(b, A), InvAddMul(b2, A2); atol = 1e-5))
+
+        B = A .+ 1; c = b .+ 1
+
+        @test Mul(A) != Mul(B)
+        @test InvMul(A) != InvMul(B)
+        @test Add(A) != Add(B)
+        @test Subtract(A) != Subtract(B)
+        @test MulAdd(A, b) != MulAdd(B, b)
+        @test MulAdd(A, b) != MulAdd(A, c)
+        @test InvMulAdd(A, b) != InvMulAdd(B, b)
+        @test InvMulAdd(A, b) != InvMulAdd(A, c)
+        @test AddMul(b, A) != AddMul(c, A)
+        @test AddMul(b, A) != AddMul(b, B)
+        @test InvAddMul(b, A) != InvAddMul(c, A)
+        @test InvAddMul(b, A) != InvAddMul(b, B)
+
+        @test !isapprox(Mul(A), Mul(B))
+        @test !isapprox(InvMul(A), InvMul(B))
+        @test !isapprox(Add(A), Add(B))
+        @test !isapprox(Subtract(A), Subtract(B))
+        @test !isapprox(MulAdd(A, b), MulAdd(B, c))
+        @test !isapprox(InvMulAdd(A, b), InvMulAdd(B, c))
+        @test !isapprox(AddMul(b, A), AddMul(c, B))
+        @test !isapprox(InvAddMul(b, A), InvAddMul(c, B))
     end
 
     @testset "functionality" begin
