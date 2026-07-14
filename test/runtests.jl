@@ -6,5 +6,5 @@ Test.@testset "Package AffineMaps" begin
     include("test_aqua.jl")
     include("test_affine_map.jl")
     include("test_docs.jl")
-    isempty(Test.detect_ambiguities(AffineMaps))
+    Test.@test isempty(Test.detect_ambiguities(AffineMaps))
 end # testset

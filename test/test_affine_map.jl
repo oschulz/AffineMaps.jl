@@ -7,13 +7,7 @@ using LinearAlgebra
 using InverseFunctions, ChangesOfVariables
 import Adapt, Functors
 import ForwardDiff
-import Functors
-
-import Pkg
-if ("FlexiMaps" in keys(Pkg.project().dependencies))
-    # FlexiMaps supports Julia >= v1.9 only.
-    import FlexiMaps
-end
+import FlexiMaps
 
 include("getjacobian.jl")
 const _RCNumber = Union{Real,Complex}
@@ -40,7 +34,7 @@ const _RCNumber = Union{Real,Complex}
         @test @inferred(isapprox(InvMulAdd(A, b), InvMulAdd(A2, b2); atol = 1e-5))
         @test @inferred(isapprox(AddMul(b, A), AddMul(b2, A2); atol = 1e-5))
         @test @inferred(isapprox(InvAddMul(b, A), InvAddMul(b2, A2); atol = 1e-5))
-    end    
+    end
 
     @testset "functionality" begin
         A_scalar = 3.3
@@ -92,8 +86,7 @@ const _RCNumber = Union{Real,Complex}
                 (MulAdd(A, b), InvMulAdd(A, b), A * x .+ b),
                 (AddMul(b, A), InvAddMul(b, A), A * (x .+ b)),
             ]
-                @info "Testing $(typeof(f))" 
-                if !(A isa AbstractVector && x isa AbstractMatrix)
+                @testset "$(typeof(f)) with x::$(typeof(x))" begin
                     @test f isa Function
                     @test @inferred(f(x)) ≈ y
 
@@ -101,10 +94,10 @@ const _RCNumber = Union{Real,Complex}
                         InverseFunctions.test_inverse(f, x)
                         @test @inferred(inv_f(y)) ≈ x
                         InverseFunctions.test_inverse(inv_f, y)
-                        if (eltype(A) <: Real && eltype(b) <: Real || eltype(x) <: Complex) && !(x isa Matrix)  
+                        if (eltype(A) <: Real && eltype(b) <: Real || eltype(x) <: Complex) && !(x isa Matrix)
                             ChangesOfVariables.test_with_logabsdet_jacobian(f, x, getjacobian)
                             ChangesOfVariables.test_with_logabsdet_jacobian(inv_f, y, getjacobian)
-                        elseif (eltype(A) <: Real && eltype(b) <: Real || eltype(x) <: Complex) && (x isa AbstractMatrix)  
+                        elseif (eltype(A) <: Real && eltype(b) <: Real || eltype(x) <: Complex) && (x isa AbstractMatrix)
                             m = A isa _RCNumber ? length(x) : n
                             @test isapprox(ChangesOfVariables.with_logabsdet_jacobian(f, x)[1], y) && isapprox(ChangesOfVariables.with_logabsdet_jacobian(f, x)[2][1] * m, logabsdet(getjacobian(f, x))[1])
                             @test isapprox(ChangesOfVariables.with_logabsdet_jacobian(inv_f, y)[1], x) && isapprox(ChangesOfVariables.with_logabsdet_jacobian(inv_f, y)[2][1] * m, logabsdet(getjacobian(inv_f, y))[1])
@@ -141,10 +134,8 @@ const _RCNumber = Union{Real,Complex}
             @test Functors.fmap(Array{Float32}, f) ≈ f
             @test @inferred(Functors.fmap(Array{Float32}, f)(Float32.(x))) isa Vector{Float32}
 
-            @static if isdefined(Main, :FlexiMaps)
-                @test @inferred(FlexiMaps.isaffine(f)) == true
-                @test @inferred(FlexiMaps.islinear(f)) == (f(x + x2) ≈ f(x) + f(x2))
-            end
+            @test @inferred(FlexiMaps.isaffine(f)) == true
+            @test @inferred(FlexiMaps.islinear(f)) == (f(x + x2) ≈ f(x) + f(x2))
         end
     end
 end
