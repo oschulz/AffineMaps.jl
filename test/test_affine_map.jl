@@ -10,7 +10,6 @@ import ForwardDiff
 import FlexiMaps
 
 include("getjacobian.jl")
-const _RCNumber = Union{Real,Complex}
 @testset "AffineMap" begin
     n = 5
     @testset "equality" begin
@@ -126,9 +125,15 @@ const _RCNumber = Union{Real,Complex}
                                 ChangesOfVariables.test_with_logabsdet_jacobian(f, x, getjacobian)
                                 ChangesOfVariables.test_with_logabsdet_jacobian(inv_f, y, getjacobian)
                             elseif (eltype(A) <: Real && eltype(b) <: Real || eltype(x) <: Complex) && (x isa AbstractMatrix)
-                                m = A isa _RCNumber ? length(x) : n
-                                @test isapprox(ChangesOfVariables.with_logabsdet_jacobian(f, x)[1], y) && isapprox(ChangesOfVariables.with_logabsdet_jacobian(f, x)[2][1] * m, logabsdet(getjacobian(f, x))[1])
-                                @test isapprox(ChangesOfVariables.with_logabsdet_jacobian(inv_f, y)[1], x) && isapprox(ChangesOfVariables.with_logabsdet_jacobian(inv_f, y)[2][1] * m, logabsdet(getjacobian(inv_f, y))[1])
+                                for (g, u, v_ref) in ((f, x, y), (inv_f, y, x))
+                                    v, ladj = ChangesOfVariables.with_logabsdet_jacobian(g, u)
+                                    @test v ≈ v_ref
+                                    @test ladj isa AbstractMatrix && size(ladj) == (1, size(u, 2))
+                                    @test sum(ladj) ≈ logabsdet(getjacobian(g, u))[1]
+                                    if !(b isa AbstractMatrix)
+                                        @test all(ladj[1, j] ≈ ChangesOfVariables.with_logabsdet_jacobian(g, u[:, j])[2] for j in axes(u, 2))
+                                    end
+                                end
                             end
                         end
                     end

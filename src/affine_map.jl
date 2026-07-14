@@ -21,6 +21,10 @@ provide such operators, for example.
 scalar, an array of equal shape, or e.g. a vector to add column-wise to a
 matrix-valued `A * x`.
 
+A matrix-valued `x` is treated as a batch of column-vector samples, so
+`ChangesOfVariables.with_logabsdet_jacobian` returns a `1 × size(x, 2)`
+matrix of per-column values then.
+
 Subtypes of `AbstractAffineMap` should implement/support the APIs of
 
 * [InverseFunctions.jl](https://github.com/JuliaMath/InverseFunctions.jl)

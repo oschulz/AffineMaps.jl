@@ -24,8 +24,8 @@ _logabsdet(x::Union{Number,AbstractMatrix}) = first(LinearAlgebra.logabsdet(x))
 _type_ndof(::Type{<:Real}) = 1
 _type_ndof(::Type{<:Complex}) = 2
 
-_mul_ladj_impl(k, x) = _logabsdet(k) * length(eachindex(x)) / length(axes(k,1)) * _type_ndof(eltype(x))
-_mul_ladj_impl(k, x::Matrix) = fill(_logabsdet(k) * _type_ndof(eltype(x)), 1, size(x, 2))
+_mul_ladj_impl(A, x) = _logabsdet(A) * length(eachindex(x)) / length(axes(A,1)) * _type_ndof(eltype(x))
+_mul_ladj_impl(A, x::AbstractMatrix) = fill(_logabsdet(A) * size(x, 1) / length(axes(A,1)) * _type_ndof(eltype(x)), 1, size(x, 2))
 
 _realtype(::Type{T}) where {T<:Real} = T
 _realtype(::Type{Complex{T}}) where {T<:Real} = T
@@ -33,10 +33,11 @@ _realtype(::Type{Complex{T}}) where {T<:Real} = T
 const _RCNumber = Union{Real,Complex}
 
 _add_ladj(x) = zero(_realtype(eltype(x)))
+_add_ladj(x::AbstractMatrix) = zeros(_realtype(eltype(x)), 1, size(x, 2))
 
 _mul_ladj(@nospecialize(A), @nospecialize(x)) = throw(ArgumentError("Can't determine logabsdet(Jacobian) for multiplication of a $(typeof(A)) and a $(typeof(x))"))
-_mul_ladj(A::Real, x::Union{_RCNumber,Array{<:_RCNumber}}) = _mul_ladj_impl(A, x)
-_mul_ladj(A::Complex, x::Union{Complex,Array{<:Complex}}) = _mul_ladj_impl(A, x)
+_mul_ladj(A::Real, x::Union{_RCNumber,AbstractArray{<:_RCNumber}}) = _mul_ladj_impl(A, x)
+_mul_ladj(A::Complex, x::Union{Complex,AbstractArray{<:Complex}}) = _mul_ladj_impl(A, x)
 _mul_ladj(A::AbstractMatrix{<:Real}, x::Union{AbstractVector{<:_RCNumber},AbstractMatrix{<:_RCNumber}}) = _mul_ladj_impl(A, x)
 _mul_ladj(A::AbstractMatrix{<:Complex}, x::Union{AbstractVector{<:Complex},AbstractMatrix{<:Complex}}) = _mul_ladj_impl(A, x)
 
