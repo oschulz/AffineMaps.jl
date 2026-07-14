@@ -19,9 +19,7 @@ ChangesOfVariables.with_logabsdet_jacobian(f::AddMul, x) = f(x),  _mul_ladj(f.A,
 ChangesOfVariables.with_logabsdet_jacobian(f::InvAddMul, x) = f(x), - _mul_ladj(f.A, x)
 
 
-# Julia v1.8 supports logabsdet(::Number), but older versions don't:
-_logabsdet(x::Number) = log(abs(x))
-_logabsdet(x::AbstractMatrix) = LinearAlgebra.logabsdet(x)[1]
+_logabsdet(x::Union{Number,AbstractMatrix}) = first(LinearAlgebra.logabsdet(x))
 
 _type_ndof(::Type{<:Real}) = 1
 _type_ndof(::Type{<:Complex}) = 2
