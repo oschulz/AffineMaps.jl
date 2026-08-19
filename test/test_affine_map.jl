@@ -198,4 +198,43 @@ include("getjacobian.jl")
     end
 end
 
+# A minimal matrix-shaped linear operator that is not an AbstractMatrix:
+# affine maps must compose with such factor types purely through the
+# LinearAlgebra interface (multiplication, ldiv, ndims, size, eltype,
+# logabsdet), without
+# any dedicated glue code:
+struct _MockLinOp{M<:AbstractMatrix{<:Real}}
+    m::M
+end
+
+Base.:*(op::_MockLinOp, x::AbstractVector{<:Real}) = op.m * x
+Base.:\(op::_MockLinOp, x::AbstractVector{<:Real}) = op.m \ x
+Base.ndims(::_MockLinOp) = 2
+Base.size(op::_MockLinOp, i::Integer) = size(op.m, i)
+Base.eltype(::Type{_MockLinOp{M}}) where M = eltype(M)
+LinearAlgebra.logabsdet(op::_MockLinOp) = logabsdet(op.m)
+
+@testset "linear operator factors" begin
+    A_mat = [2.0 0.5; -0.3 1.5]
+    op = _MockLinOp(A_mat)
+    b = [0.4, -1.2]
+    x = [1.7, -0.6]
+
+    for (f, f_ref) in [
+        (Mul(op), Mul(A_mat)),
+        (MulAdd(op, b), MulAdd(A_mat, b)),
+        (InvMulAdd(op, b), InvMulAdd(A_mat, b)),
+    ]
+        y, ladj = ChangesOfVariables.with_logabsdet_jacobian(f, x)
+        y_ref, ladj_ref = ChangesOfVariables.with_logabsdet_jacobian(f_ref, x)
+        @test y ≈ y_ref
+        @test ladj ≈ ladj_ref
+    end
+
+    # Matrix-shaped factors are only a change of variables when acting on
+    # vectors or column batches:
+    @test_throws ArgumentError ChangesOfVariables.with_logabsdet_jacobian(Mul(A_mat), 2.0)
+    @test_throws ArgumentError ChangesOfVariables.with_logabsdet_jacobian(Mul(op), 2.0)
+end
+
 nothing
