@@ -7,6 +7,7 @@ using LinearAlgebra
 using InverseFunctions, ChangesOfVariables
 import Adapt, Functors
 import ForwardDiff
+using JLArrays: JLArrays, JLArray
 import FlexiMaps
 
 include("getjacobian.jl")
@@ -164,6 +165,22 @@ include("getjacobian.jl")
         y, ladj = ChangesOfVariables.with_logabsdet_jacobian(Mul(3.3 * I), X)
         @test y ≈ 3.3 * X
         @test ladj ≈ fill(n * log(3.3), 1, n)
+    end
+
+    @testset "batches on other array types" begin
+        # The log-abs-det Jacobians of a batch are in the same kind of
+        # array as the batch:
+        JLArrays.allowscalar(false)
+        X = randn(3, 5)
+        Xd = JLArray(X)
+        d, b = JLArray([2.0, 0.5, 1.5]), JLArray(randn(3))
+        for f in (Mul(3.3), Mul(3.3 * I), Add(b), MulAdd(Diagonal(d), b), inverse(MulAdd(Diagonal(d), b)))
+            yd, ladjd = ChangesOfVariables.with_logabsdet_jacobian(f, Xd)
+            y, ladj = ChangesOfVariables.with_logabsdet_jacobian(Adapt.adapt(Array, f), X)
+            @test yd isa JLArray && ladjd isa JLArray
+            @test ladj isa Matrix && size(ladjd) == size(ladj) == (1, 5)
+            @test Array(yd) ≈ y && Array(ladjd) ≈ ladj
+        end
     end
 
     @testset "Extensions" begin

@@ -30,8 +30,12 @@ _logabsdet(x) = first(LinearAlgebra.logabsdet(x))
 _type_ndof(::Type{<:Real}) = 1
 _type_ndof(::Type{<:Complex}) = 2
 
+# One value per column of a batch `x` of column vectors, in a row matrix of
+# the same kind of array as `x` (e.g. on the same GPU):
+_ladj_row(c, x::AbstractMatrix) = map(Returns(c), view(x, 1:1, :))
+
 _mul_ladj_impl(A, x) = _logabsdet(A) * length(eachindex(x)) / size(A, 1) * _type_ndof(eltype(x))
-_mul_ladj_impl(A, x::AbstractMatrix) = fill(_logabsdet(A) * size(x, 1) / size(A, 1) * _type_ndof(eltype(x)), 1, size(x, 2))
+_mul_ladj_impl(A, x::AbstractMatrix) = _ladj_row(_logabsdet(A) * size(x, 1) / size(A, 1) * _type_ndof(eltype(x)), x)
 
 _realtype(::Type{T}) where {T<:Real} = T
 _realtype(::Type{Complex{T}}) where {T<:Real} = T
@@ -39,7 +43,7 @@ _realtype(::Type{Complex{T}}) where {T<:Real} = T
 const _RCNumber = Union{Real,Complex}
 
 _add_ladj(x) = zero(_realtype(eltype(x)))
-_add_ladj(x::AbstractMatrix) = zeros(_realtype(eltype(x)), 1, size(x, 2))
+_add_ladj(x::AbstractMatrix) = _ladj_row(zero(_realtype(eltype(x))), x)
 
 # Holy-trait dispatch on dimensionality, for factor types that carry a
 # shape but no AbstractArray supertype:
