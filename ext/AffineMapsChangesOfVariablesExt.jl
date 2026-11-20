@@ -26,6 +26,9 @@ ChangesOfVariables.with_logabsdet_jacobian(f::InvAddMul, x) = _primal_with_ladj(
 
 
 _logabsdet(x) = first(LinearAlgebra.logabsdet(x))
+# A plain sum, `logabsdet` reduces over tuples, which not all array types
+# support (e.g. GPU arrays with GPUArrays v11):
+_logabsdet(x::Diagonal{<:Number}) = sum(d -> log(abs(d)), x.diag)
 
 _type_ndof(::Type{<:Real}) = 1
 _type_ndof(::Type{<:Complex}) = 2
